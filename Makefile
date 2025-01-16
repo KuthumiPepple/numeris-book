@@ -18,5 +18,7 @@ start:
 stop:
 	docker compose stop
 
+test:
+	go test -v -cover ./...
 
 .PHONY: postgres new_migration migrateup migratedown start stop
