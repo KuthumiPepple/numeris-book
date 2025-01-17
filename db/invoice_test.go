@@ -179,7 +179,7 @@ func TestCreateInvoiceTx(t *testing.T) {
 			require.Equal(t, invoice.InvoiceNumber, lineItem.InvoiceNumber)
 			require.Equal(t, testItems[i].Description, lineItem.Description)
 			require.Equal(t, testItems[i].Quantity, lineItem.Quantity)
-			require.Equal(t, int64(testItems[i].UnitPrice * 100), lineItem.UnitPrice)
+			require.Equal(t, int64(testItems[i].UnitPrice*100), lineItem.UnitPrice)
 			require.Equal(t, testItems[i].ExpectedTotalPrice, lineItem.TotalPrice)
 		}
 	}

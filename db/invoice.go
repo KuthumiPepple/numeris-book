@@ -36,7 +36,7 @@ func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (I
 	row := q.db.QueryRow(ctx, InsertInvoiceQuery,
 		arg.CustomerName, arg.CustomerEmail, arg.CustomerPhone, arg.CustomerAddress,
 		arg.SenderName, arg.SenderEmail, arg.SenderPhone, arg.SenderAddress,
-		arg.IssueDate, arg.DueDate, arg.Status, arg.Subtotal, 
+		arg.IssueDate, arg.DueDate, arg.Status, arg.Subtotal,
 		arg.DiscountRateInPercent, arg.Discount, arg.TotalAmount, arg.PaymentInfo,
 	)
 	var i Invoice
