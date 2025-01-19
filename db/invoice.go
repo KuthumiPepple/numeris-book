@@ -1,6 +1,9 @@
 package db
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 const InsertInvoiceQuery = `
 	INSERT INTO invoices (
@@ -14,22 +17,22 @@ const InsertInvoiceQuery = `
 `
 
 type InsertInvoiceParams struct {
-	CustomerName          string `json:"customer_name"`
-	CustomerEmail         string `json:"customer_email"`
-	CustomerPhone         string `json:"customer_phone"`
-	CustomerAddress       string `json:"customer_address"`
-	SenderName            string `json:"sender_name"`
-	SenderEmail           string `json:"sender_email"`
-	SenderPhone           string `json:"sender_phone"`
-	SenderAddress         string `json:"sender_address"`
-	IssueDate             string `json:"issue_date"`
-	DueDate               string `json:"due_date"`
-	Status                string `json:"status"`
-	Subtotal              int64  `json:"subtotal"`
-	DiscountRateInPercent string `json:"discount_rate_in_percent"`
-	Discount              int64  `json:"discount"`
-	TotalAmount           int64  `json:"total_amount"`
-	PaymentInfo           string `json:"payment_info"`
+	CustomerName          string    `json:"customer_name"`
+	CustomerEmail         string    `json:"customer_email"`
+	CustomerPhone         string    `json:"customer_phone"`
+	CustomerAddress       string    `json:"customer_address"`
+	SenderName            string    `json:"sender_name"`
+	SenderEmail           string    `json:"sender_email"`
+	SenderPhone           string    `json:"sender_phone"`
+	SenderAddress         string    `json:"sender_address"`
+	IssueDate             time.Time `json:"issue_date"`
+	DueDate               time.Time `json:"due_date"`
+	Status                string    `json:"status"`
+	Subtotal              int64     `json:"subtotal"`
+	DiscountRateInPercent string    `json:"discount_rate_in_percent"`
+	Discount              int64     `json:"discount"`
+	TotalAmount           int64     `json:"total_amount"`
+	PaymentInfo           string    `json:"payment_info"`
 }
 
 func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (Invoice, error) {

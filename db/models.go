@@ -12,8 +12,8 @@ type Invoice struct {
 	SenderEmail           string    `json:"sender_email"`
 	SenderPhone           string    `json:"sender_phone"`
 	SenderAddress         string    `json:"sender_address"`
-	IssueDate             string    `json:"issue_date"`
-	DueDate               string    `json:"due_date"`
+	IssueDate             time.Time `json:"issue_date"`
+	DueDate               time.Time `json:"due_date"`
 	Status                string    `json:"status"`
 	Subtotal              int64     `json:"subtotal"`
 	DiscountRateInPercent string    `json:"discount_rate_in_percent"`

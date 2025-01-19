@@ -21,8 +21,8 @@ func insertRandomInvoice(t *testing.T) Invoice {
 		SenderEmail:           util.RandomEmail(),
 		SenderPhone:           util.RandomPhone(),
 		SenderAddress:         util.RandomAddress(),
-		IssueDate:             time.Now().Format(time.DateOnly),
-		DueDate:               time.Now().AddDate(0, 0, 30).Format(time.DateOnly),
+		IssueDate:             time.Now(),
+		DueDate:               time.Now().AddDate(0, 0, 30),
 		Status:                util.RandomStatus(),
 		Subtotal:              util.RandomInt(100, 10000),
 		DiscountRateInPercent: fmt.Sprintf("%.2f", util.RandomFloatN(100)),
@@ -44,8 +44,8 @@ func insertRandomInvoice(t *testing.T) Invoice {
 	require.Equal(t, arg.SenderEmail, invoice.SenderEmail)
 	require.Equal(t, arg.SenderPhone, invoice.SenderPhone)
 	require.Equal(t, arg.SenderAddress, invoice.SenderAddress)
-	require.Equal(t, arg.IssueDate, invoice.IssueDate)
-	require.Equal(t, arg.DueDate, invoice.DueDate)
+	require.WithinDuration(t, arg.IssueDate, invoice.IssueDate, time.Second)
+	require.WithinDuration(t, arg.DueDate, invoice.DueDate, time.Second)
 	require.Equal(t, arg.Status, invoice.Status)
 	require.Equal(t, arg.Subtotal, invoice.Subtotal)
 	require.Equal(t, arg.DiscountRateInPercent, invoice.DiscountRateInPercent)
@@ -98,8 +98,8 @@ func TestCreateInvoiceTx(t *testing.T) {
 			SenderEmail:           util.RandomEmail(),
 			SenderPhone:           util.RandomPhone(),
 			SenderAddress:         util.RandomAddress(),
-			IssueDate:             time.Now().Format(time.DateOnly),
-			DueDate:               time.Now().AddDate(0, 0, 30).Format(time.DateOnly),
+			IssueDate:             time.Now(),
+			DueDate:               time.Now().AddDate(0, 0, 30),
 			Status:                util.RandomStatus(),
 			DiscountRateInPercent: fmt.Sprintf("%.2f", util.RandomFloatN(100)),
 			PaymentInfo:           util.RandomString(10),
@@ -160,8 +160,8 @@ func TestCreateInvoiceTx(t *testing.T) {
 		require.Equal(t, arg.SenderEmail, invoice.SenderEmail)
 		require.Equal(t, arg.SenderPhone, invoice.SenderPhone)
 		require.Equal(t, arg.SenderAddress, invoice.SenderAddress)
-		require.Equal(t, arg.IssueDate, invoice.IssueDate)
-		require.Equal(t, arg.DueDate, invoice.DueDate)
+		require.WithinDuration(t, arg.IssueDate, invoice.IssueDate, time.Second)
+		require.WithinDuration(t, arg.DueDate, invoice.DueDate, time.Second)
 		require.Equal(t, arg.Status, invoice.Status)
 		require.Equal(t, expectedSubtotal, invoice.Subtotal)
 		require.Equal(t, arg.DiscountRateInPercent, invoice.DiscountRateInPercent)

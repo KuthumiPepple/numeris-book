@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Rhymond/go-money"
 	"github.com/kuthumipepple/numeris-book/util"
@@ -34,8 +35,8 @@ type CreateInvoiceTxParams struct {
 	SenderEmail           string      `json:"sender_email"`
 	SenderPhone           string      `json:"sender_phone"`
 	SenderAddress         string      `json:"sender_address"`
-	IssueDate             string      `json:"issue_date"`
-	DueDate               string      `json:"due_date"`
+	IssueDate             time.Time   `json:"issue_date"`
+	DueDate               time.Time   `json:"due_date"`
 	Status                string      `json:"status"`
 	DiscountRateInPercent string      `json:"discount_rate_in_percent"`
 	PaymentInfo           string      `json:"payment_info"`
