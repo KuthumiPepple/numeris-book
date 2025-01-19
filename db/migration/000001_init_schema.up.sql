@@ -12,7 +12,7 @@
   "due_date" timestamptz NOT NULL,
   "status" varchar NOT NULL,
   "subtotal" bigint NOT NULL,
-  "discount_rate_in_percent" varchar NOT NULL,
+  "discount_rate" bigint NOT NULL,
   "discount" bigint NOT NULL,
   "total_amount" bigint NOT NULL,
   "billing_currency" varchar NOT NULL DEFAULT 'USD',

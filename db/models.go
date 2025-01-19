@@ -3,26 +3,26 @@ package db
 import "time"
 
 type Invoice struct {
-	InvoiceNumber         int64     `json:"invoice_number"`
-	CustomerName          string    `json:"customer_name"`
-	CustomerEmail         string    `json:"customer_email"`
-	CustomerPhone         string    `json:"customer_phone"`
-	CustomerAddress       string    `json:"customer_address"`
-	SenderName            string    `json:"sender_name"`
-	SenderEmail           string    `json:"sender_email"`
-	SenderPhone           string    `json:"sender_phone"`
-	SenderAddress         string    `json:"sender_address"`
-	IssueDate             time.Time `json:"issue_date"`
-	DueDate               time.Time `json:"due_date"`
-	Status                string    `json:"status"`
-	Subtotal              int64     `json:"subtotal"`
-	DiscountRateInPercent string    `json:"discount_rate_in_percent"`
-	Discount              int64     `json:"discount"`
-	TotalAmount           int64     `json:"total_amount"`
-	PaymentInfo           string    `json:"payment_info"`
-	BillingCurrency       string    `json:"billing_currency"`
-	Note                  string    `json:"note"`
-	CreatedAt             time.Time `json:"created_at"`
+	InvoiceNumber   int64     `json:"invoice_number"`
+	CustomerName    string    `json:"customer_name"`
+	CustomerEmail   string    `json:"customer_email"`
+	CustomerPhone   string    `json:"customer_phone"`
+	CustomerAddress string    `json:"customer_address"`
+	SenderName      string    `json:"sender_name"`
+	SenderEmail     string    `json:"sender_email"`
+	SenderPhone     string    `json:"sender_phone"`
+	SenderAddress   string    `json:"sender_address"`
+	IssueDate       time.Time `json:"issue_date"`
+	DueDate         time.Time `json:"due_date"`
+	Status          string    `json:"status"`
+	Subtotal        int64     `json:"subtotal"`
+	DiscountRate    int64     `json:"discount_rate"`
+	Discount        int64     `json:"discount"`
+	TotalAmount     int64     `json:"total_amount"`
+	PaymentInfo     string    `json:"payment_info"`
+	BillingCurrency string    `json:"billing_currency"`
+	Note            string    `json:"note"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 
 type LineItem struct {
