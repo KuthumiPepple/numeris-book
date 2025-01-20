@@ -11,12 +11,21 @@ type Server struct {
 }
 
 func NewServer(store db.Store) *Server {
-	return &Server{
-		store:  store,
-		router: gin.Default(),
-	}
+	server := &Server{store: store}
+	server.setupRouter()
+	return server
+}
+
+func (server *Server) setupRouter() {
+	router := gin.Default()
+	router.POST("/invoices", server.createInvoice)
+	server.router = router
 }
 
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
+}
+
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
 }
