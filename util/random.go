@@ -56,8 +56,3 @@ func RandomStatus() string {
 	status := []string{DRAFT, PENDING_PAYMENT, PAID, OVERDUE}
 	return status[rand.Intn(len(status))]
 }
-
-// RandomFloatN generates a random float64 value in the interval [0.0, n)
-func RandomFloatN(n float64) float64 {
-	return rand.Float64() * n
-}

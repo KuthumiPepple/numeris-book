@@ -12,13 +12,16 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
-start:
+db_start:
 	docker compose start
 
-stop:
+db_stop:
 	docker compose stop
 
 test:
 	go test -v -cover ./...
 
-.PHONY: postgres new_migration migrateup migratedown start stop
+server:
+	go run main.go
+
+.PHONY: postgres new_migration migrateup migratedown db_start db_stop test server
