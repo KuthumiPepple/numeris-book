@@ -1,50 +1,53 @@
 package db
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 const InsertInvoiceQuery = `
 	INSERT INTO invoices (
 		customer_name, customer_email, customer_phone, customer_address,
 		sender_name, sender_email, sender_phone, sender_address,
 		issue_date, due_date, status, subtotal,
-		discount_rate_in_percent, discount, total_amount, payment_info
+		discount_rate, discount, total_amount, payment_info
 	) VALUES (
 	 $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
 	) RETURNING *;
 `
 
 type InsertInvoiceParams struct {
-	CustomerName          string `json:"customer_name"`
-	CustomerEmail         string `json:"customer_email"`
-	CustomerPhone         string `json:"customer_phone"`
-	CustomerAddress       string `json:"customer_address"`
-	SenderName            string `json:"sender_name"`
-	SenderEmail           string `json:"sender_email"`
-	SenderPhone           string `json:"sender_phone"`
-	SenderAddress         string `json:"sender_address"`
-	IssueDate             string `json:"issue_date"`
-	DueDate               string `json:"due_date"`
-	Status                string `json:"status"`
-	Subtotal              int64  `json:"subtotal"`
-	DiscountRateInPercent string `json:"discount_rate_in_percent"`
-	Discount              int64  `json:"discount"`
-	TotalAmount           int64  `json:"total_amount"`
-	PaymentInfo           string `json:"payment_info"`
+	CustomerName    string    `json:"customer_name"`
+	CustomerEmail   string    `json:"customer_email"`
+	CustomerPhone   string    `json:"customer_phone"`
+	CustomerAddress string    `json:"customer_address"`
+	SenderName      string    `json:"sender_name"`
+	SenderEmail     string    `json:"sender_email"`
+	SenderPhone     string    `json:"sender_phone"`
+	SenderAddress   string    `json:"sender_address"`
+	IssueDate       time.Time `json:"issue_date"`
+	DueDate         time.Time `json:"due_date"`
+	Status          string    `json:"status"`
+	Subtotal        int64     `json:"subtotal"`
+	DiscountRate    int64     `json:"discount_rate"`
+	Discount        int64     `json:"discount"`
+	TotalAmount     int64     `json:"total_amount"`
+	PaymentInfo     string    `json:"payment_info"`
 }
 
 func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (Invoice, error) {
 	row := q.db.QueryRow(ctx, InsertInvoiceQuery,
 		arg.CustomerName, arg.CustomerEmail, arg.CustomerPhone, arg.CustomerAddress,
 		arg.SenderName, arg.SenderEmail, arg.SenderPhone, arg.SenderAddress,
-		arg.IssueDate, arg.DueDate, arg.Status, arg.Subtotal, 
-		arg.DiscountRateInPercent, arg.Discount, arg.TotalAmount, arg.PaymentInfo,
+		arg.IssueDate, arg.DueDate, arg.Status, arg.Subtotal,
+		arg.DiscountRate, arg.Discount, arg.TotalAmount, arg.PaymentInfo,
 	)
 	var i Invoice
 	err := row.Scan(
 		&i.InvoiceNumber, &i.CustomerName, &i.CustomerEmail, &i.CustomerPhone, &i.CustomerAddress,
 		&i.SenderName, &i.SenderEmail, &i.SenderPhone, &i.SenderAddress,
 		&i.IssueDate, &i.DueDate, &i.Status,
-		&i.Subtotal, &i.DiscountRateInPercent, &i.Discount, &i.TotalAmount,
+		&i.Subtotal, &i.DiscountRate, &i.Discount, &i.TotalAmount,
 		&i.BillingCurrency, &i.PaymentInfo, &i.Note, &i.CreatedAt,
 	)
 	return i, err
