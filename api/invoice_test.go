@@ -17,6 +17,9 @@ import (
 )
 
 func TestCreateInvoiceAPI(t *testing.T) {
+
+	fixedTime := time.Date(2025, 1, 21, 0, 0, 0, 0, time.UTC)
+
 	testCases := []struct {
 		name          string
 		body          gin.H
@@ -34,8 +37,8 @@ func TestCreateInvoiceAPI(t *testing.T) {
 				"sender_email":             "xyz@acme.com",
 				"sender_phone":             "+9876543210",
 				"sender_address":           "456 X Street",
-				"issue_date":               "2025-01-21",
-				"due_date":                 "2025-01-22",
+				"issue_date":               fixedTime.Format(time.DateOnly),
+				"due_date":                 fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
 				"status":                   "pending_payment",
 				"discount_rate_in_percent": "5.8",
 				"payment_info":             "Bank transfer",
@@ -53,9 +56,6 @@ func TestCreateInvoiceAPI(t *testing.T) {
 				},
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				issueDate, _ := time.Parse(time.DateOnly, "2025-01-21")
-				dueDate, _ := time.Parse(time.DateOnly, "2025-01-22")
-
 				arg := db.CreateInvoiceTxParams{
 					CustomerName:    "john doe",
 					CustomerEmail:   "jdoe@fakemail.com",
@@ -65,8 +65,8 @@ func TestCreateInvoiceAPI(t *testing.T) {
 					SenderEmail:     "xyz@acme.com",
 					SenderPhone:     "+9876543210",
 					SenderAddress:   "456 X Street",
-					IssueDate:       issueDate,
-					DueDate:         dueDate,
+					IssueDate:       fixedTime,
+					DueDate:         fixedTime.AddDate(0, 0, 1),
 					Status:          "pending_payment",
 					Subtotal:        int64(21798),
 					DiscountRate:    int64(580),
@@ -92,7 +92,7 @@ func TestCreateInvoiceAPI(t *testing.T) {
 					Invoice: db.Invoice{
 						InvoiceNumber: int64(1),
 						Subtotal:      int64(21798),
-						CreatedAt:     time.Unix(999, 999),
+						CreatedAt:     fixedTime,
 					},
 				}
 
@@ -103,7 +103,10 @@ func TestCreateInvoiceAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusCreated, recorder.Code)
-				requireBodyMatchResponse(t, recorder.Body, createInvoiceResponse{1, time.Unix(999, 999)})
+				requireBodyMatchResponse(
+					t,
+					recorder.Body,
+					createInvoiceResponse{1, fixedTime})
 			},
 		},
 
@@ -118,8 +121,8 @@ func TestCreateInvoiceAPI(t *testing.T) {
 				"sender_email":             "xyz@acme.com",
 				"sender_phone":             "+9876543210",
 				"sender_address":           "456 X Street",
-				"issue_date":               "2025-01-21",
-				"due_date":                 "2025-01-21",
+				"issue_date":               fixedTime.Format(time.DateOnly),
+				"due_date":                 fixedTime.AddDate(0, 0, -1).Format(time.DateOnly),
 				"status":                   "pending_payment",
 				"discount_rate_in_percent": "5.8",
 				"payment_info":             "Bank transfer",
