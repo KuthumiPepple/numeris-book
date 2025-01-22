@@ -11,20 +11,20 @@ import (
 )
 
 type createInvoiceRequest struct {
-	CustomerName          string                  `json:"customer_name" binding:"required"`
-	CustomerEmail         string                  `json:"customer_email" binding:"required,email"`
-	CustomerPhone         string                  `json:"customer_phone" binding:"required"`
-	CustomerAddress       string                  `json:"customer_address" binding:"required"`
-	SenderName            string                  `json:"sender_name" binding:"required"`
-	SenderEmail           string                  `json:"sender_email" binding:"required,email"`
-	SenderPhone           string                  `json:"sender_phone" binding:"required"`
-	SenderAddress         string                  `json:"sender_address" binding:"required"`
-	IssueDate             string                  `json:"issue_date" binding:"required"`
-	DueDate               string                  `json:"due_date" binding:"required"`
-	Status                string                  `json:"status" binding:"required"`
-	DiscountRateInPercent string                  `json:"discount_rate_in_percent" binding:"required"`
-	PaymentInfo           string                  `json:"payment_info" binding:"required"`
-	LineItems             []createLineItemRequest `json:"line_items" binding:"required"`
+	CustomerName    string                  `json:"customer_name" binding:"required"`
+	CustomerEmail   string                  `json:"customer_email" binding:"required,email"`
+	CustomerPhone   string                  `json:"customer_phone" binding:"required"`
+	CustomerAddress string                  `json:"customer_address" binding:"required"`
+	SenderName      string                  `json:"sender_name" binding:"required"`
+	SenderEmail     string                  `json:"sender_email" binding:"required,email"`
+	SenderPhone     string                  `json:"sender_phone" binding:"required"`
+	SenderAddress   string                  `json:"sender_address" binding:"required"`
+	IssueDate       string                  `json:"issue_date" binding:"required"`
+	DueDate         string                  `json:"due_date" binding:"required"`
+	Status          string                  `json:"status" binding:"required"`
+	DiscountRate    string                  `json:"discount_rate" binding:"required,rate_in_percent"`
+	PaymentInfo     string                  `json:"payment_info" binding:"required"`
+	LineItems       []createLineItemRequest `json:"line_items" binding:"required"`
 }
 
 type createLineItemRequest struct {
@@ -61,7 +61,7 @@ func (server *Server) createInvoice(c *gin.Context) {
 		return
 	}
 
-	discountRate := convertRateFromPercentToBasisPoints(req.DiscountRateInPercent)
+	discountRate := convertRateFromPercentToBasisPoints(req.DiscountRate)
 
 	subtotal := money.New(0, money.USD)
 
