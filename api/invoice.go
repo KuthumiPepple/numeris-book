@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
@@ -22,9 +21,9 @@ type createInvoiceRequest struct {
 	IssueDate       string                  `json:"issue_date" binding:"required"`
 	DueDate         string                  `json:"due_date" binding:"required"`
 	Status          string                  `json:"status" binding:"required"`
-	DiscountRate    string                  `json:"discount_rate" binding:"required,rate_in_percent"`
+	DiscountRate    string                  `json:"discount_rate" binding:"required"`
 	PaymentInfo     string                  `json:"payment_info" binding:"required"`
-	LineItems       []createLineItemRequest `json:"line_items" binding:"required"`
+	LineItems       []createLineItemRequest `json:"line_items" binding:"required,dive"`
 }
 
 type createLineItemRequest struct {
@@ -45,21 +44,9 @@ func (server *Server) createInvoice(c *gin.Context) {
 		return
 	}
 
-	issueDate, err := time.Parse(time.DateOnly, req.IssueDate)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse(err))
-	}
+	issueDate, _ := time.Parse(time.DateOnly, req.IssueDate)
 
-	dueDate, err := time.Parse(time.DateOnly, req.DueDate)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	if !dueDate.After(issueDate) {
-		c.JSON(http.StatusBadRequest, errors.New("dueDate is not later than issueDate"))
-		return
-	}
+	dueDate, _ := time.Parse(time.DateOnly, req.DueDate)
 
 	discountRate := convertRateFromPercentToBasisPoints(req.DiscountRate)
 
@@ -79,11 +66,7 @@ func (server *Server) createInvoice(c *gin.Context) {
 		subtotal, _ = subtotal.Add(totalPrice)
 	}
 
-	parts, err := subtotal.Allocate(discountRate, 10000-discountRate)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+	parts, _ := subtotal.Allocate(discountRate, 10000-discountRate)
 	discount, totalAmount := parts[0], parts[1]
 
 	arg := db.CreateInvoiceTxParams{

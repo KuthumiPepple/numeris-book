@@ -16,7 +16,7 @@ func NewServer(store db.Store) *Server {
 	server := &Server{store: store}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("rate_in_percent", isDiscountRateValid)
+		v.RegisterStructValidation(createInvoiceRequestValidation, createInvoiceRequest{})
 	}
 
 	server.setupRouter()
