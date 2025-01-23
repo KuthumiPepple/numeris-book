@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/kuthumipepple/numeris-book/db"
 	mockdb "github.com/kuthumipepple/numeris-book/db/mock"
 	"github.com/stretchr/testify/require"
@@ -29,19 +30,19 @@ func TestCreateInvoiceAPI(t *testing.T) {
 		{
 			name: "OK",
 			body: gin.H{
-				"customer_name":            "john doe",
-				"customer_email":           "jdoe@fakemail.com",
-				"customer_phone":           "+1234567890",
-				"customer_address":         "123 A Street",
-				"sender_name":              "acme inc",
-				"sender_email":             "xyz@acme.com",
-				"sender_phone":             "+9876543210",
-				"sender_address":           "456 X Street",
-				"issue_date":               fixedTime.Format(time.DateOnly),
-				"due_date":                 fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
-				"status":                   "pending_payment",
-				"discount_rate_in_percent": "5.8",
-				"payment_info":             "Bank transfer",
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
 				"line_items": []gin.H{
 					{
 						"description": "item 1",
@@ -111,7 +112,7 @@ func TestCreateInvoiceAPI(t *testing.T) {
 		},
 
 		{
-			name: "DueDate not later than IssueDate",
+			name: "DueDateNotLaterThanIssueDate",
 			body: gin.H{
 				"customer_name":            "john doe",
 				"customer_email":           "jdoe@fakemail.com",
@@ -151,7 +152,7 @@ func TestCreateInvoiceAPI(t *testing.T) {
 		},
 
 		{
-			name: "Incomplete request body",
+			name: "IncompleteRequestData",
 			body: gin.H{
 				"customer_name": "john doe",
 				"payment_info":  "Bank transfer",
@@ -175,6 +176,287 @@ func TestCreateInvoiceAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "InvalidFormatForDueDate",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         "22/01/2025",
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "DiscountRateLessThanZero",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "-1",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "DiscountRateTooHigh",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "100",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "UnitPriceIsNegative",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "-100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "UnitPriceHasMoreThanTwoDecimalPlaces",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.999",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "QuantityIsNegative",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    -1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name: "InternalError",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.CreateInvoiceTxResult{}, &pgconn.PgError{})
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
