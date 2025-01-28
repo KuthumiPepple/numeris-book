@@ -5,7 +5,7 @@ import (
 )
 
 type Querier interface {
-	InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (Invoice, error)
+	InsertInvoiceRecord(ctx context.Context, arg InsertInvoiceRecordParams) (Invoice, error)
 	InsertLineItem(ctx context.Context, arg InsertLineItemParams) (LineItem, error)
 }
 

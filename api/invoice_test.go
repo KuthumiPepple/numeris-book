@@ -89,7 +89,7 @@ func TestCreateInvoiceAPI(t *testing.T) {
 						},
 					},
 				}
-				result := db.CreateInvoiceTxResult{
+				result := db.InvoiceResult{
 					Invoice: db.Invoice{
 						InvoiceNumber: int64(1),
 						Subtotal:      int64(21798),
@@ -453,7 +453,7 @@ func TestCreateInvoiceAPI(t *testing.T) {
 				store.EXPECT().
 					CreateInvoiceTx(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(db.CreateInvoiceTxResult{}, &pgconn.PgError{})
+					Return(db.InvoiceResult{}, &pgconn.PgError{})
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)

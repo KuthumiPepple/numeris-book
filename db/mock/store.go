@@ -42,10 +42,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // CreateInvoiceTx mocks base method.
-func (m *MockStore) CreateInvoiceTx(ctx context.Context, arg db.CreateInvoiceTxParams) (db.CreateInvoiceTxResult, error) {
+func (m *MockStore) CreateInvoiceTx(ctx context.Context, arg db.CreateInvoiceTxParams) (db.InvoiceResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateInvoiceTx", ctx, arg)
-	ret0, _ := ret[0].(db.CreateInvoiceTxResult)
+	ret0, _ := ret[0].(db.InvoiceResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -56,19 +56,34 @@ func (mr *MockStoreMockRecorder) CreateInvoiceTx(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateInvoiceTx", reflect.TypeOf((*MockStore)(nil).CreateInvoiceTx), ctx, arg)
 }
 
-// InsertInvoice mocks base method.
-func (m *MockStore) InsertInvoice(ctx context.Context, arg db.InsertInvoiceParams) (db.Invoice, error) {
+// GetInvoice mocks base method.
+func (m *MockStore) GetInvoice(ctx context.Context, id int64) (db.InvoiceResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InsertInvoice", ctx, arg)
+	ret := m.ctrl.Call(m, "GetInvoice", ctx, id)
+	ret0, _ := ret[0].(db.InvoiceResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInvoice indicates an expected call of GetInvoice.
+func (mr *MockStoreMockRecorder) GetInvoice(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInvoice", reflect.TypeOf((*MockStore)(nil).GetInvoice), ctx, id)
+}
+
+// InsertInvoiceRecord mocks base method.
+func (m *MockStore) InsertInvoiceRecord(ctx context.Context, arg db.InsertInvoiceRecordParams) (db.Invoice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertInvoiceRecord", ctx, arg)
 	ret0, _ := ret[0].(db.Invoice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// InsertInvoice indicates an expected call of InsertInvoice.
-func (mr *MockStoreMockRecorder) InsertInvoice(ctx, arg any) *gomock.Call {
+// InsertInvoiceRecord indicates an expected call of InsertInvoiceRecord.
+func (mr *MockStoreMockRecorder) InsertInvoiceRecord(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertInvoice", reflect.TypeOf((*MockStore)(nil).InsertInvoice), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertInvoiceRecord", reflect.TypeOf((*MockStore)(nil).InsertInvoiceRecord), ctx, arg)
 }
 
 // InsertLineItem mocks base method.
