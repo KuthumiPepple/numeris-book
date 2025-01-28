@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const InsertInvoiceQuery = `
+const InsertInvoiceRecordQuery = `
 	INSERT INTO invoices (
 		customer_name, customer_email, customer_phone, customer_address,
 		sender_name, sender_email, sender_phone, sender_address,
@@ -16,7 +16,7 @@ const InsertInvoiceQuery = `
 	) RETURNING *;
 `
 
-type InsertInvoiceParams struct {
+type InsertInvoiceRecordParams struct {
 	CustomerName    string    `json:"customer_name"`
 	CustomerEmail   string    `json:"customer_email"`
 	CustomerPhone   string    `json:"customer_phone"`
@@ -35,8 +35,8 @@ type InsertInvoiceParams struct {
 	PaymentInfo     string    `json:"payment_info"`
 }
 
-func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (Invoice, error) {
-	row := q.db.QueryRow(ctx, InsertInvoiceQuery,
+func (q *Queries) InsertInvoiceRecord(ctx context.Context, arg InsertInvoiceRecordParams) (Invoice, error) {
+	row := q.db.QueryRow(ctx, InsertInvoiceRecordQuery,
 		arg.CustomerName, arg.CustomerEmail, arg.CustomerPhone, arg.CustomerAddress,
 		arg.SenderName, arg.SenderEmail, arg.SenderPhone, arg.SenderAddress,
 		arg.IssueDate, arg.DueDate, arg.Status, arg.Subtotal,

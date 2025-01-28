@@ -24,4 +24,7 @@ test:
 server:
 	go run main.go
 
-.PHONY: postgres new_migration migrateup migratedown db_start db_stop test server
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/kuthumipepple/numeris-book/db Store
+
+.PHONY: postgres new_migration migrateup migratedown db_start db_stop test server mock
