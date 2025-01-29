@@ -8,7 +8,6 @@ import (
 
 	"github.com/Rhymond/go-money"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
 	"github.com/kuthumipepple/numeris-book/db"
 )
 
@@ -94,6 +93,10 @@ func (server *Server) createInvoice(c *gin.Context) {
 
 	result, err := server.store.CreateInvoiceTx(c, arg)
 	if err != nil {
+		if errorCode := ErrorCode(err); errorCode == ForeignKeyViolation {
+			c.JSON(http.StatusForbidden, errorResponse(err))
+			return
+		}
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -153,7 +156,7 @@ func (s *Server) getInvoice(c *gin.Context) {
 
 	result, err := s.store.GetInvoice(c, req.ID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}

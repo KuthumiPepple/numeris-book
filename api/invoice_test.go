@@ -422,6 +422,47 @@ func TestCreateInvoiceAPI(t *testing.T) {
 		},
 
 		{
+			name: "ForeignKeyViolation",
+			body: gin.H{
+				"customer_name":    "john doe",
+				"customer_email":   "jdoe@fakemail.com",
+				"customer_phone":   "+1234567890",
+				"customer_address": "123 A Street",
+				"sender_name":      "acme inc",
+				"sender_email":     "xyz@acme.com",
+				"sender_phone":     "+9876543210",
+				"sender_address":   "456 X Street",
+				"issue_date":       fixedTime.Format(time.DateOnly),
+				"due_date":         fixedTime.AddDate(0, 0, 1).Format(time.DateOnly),
+				"status":           "pending_payment",
+				"discount_rate":    "5.80",
+				"payment_info":     "Bank transfer",
+				"line_items": []gin.H{
+					{
+						"description": "item 1",
+						"quantity":    1,
+						"unit_price":  "100.00",
+					},
+					{
+						"description": "item 2",
+						"quantity":    2,
+						"unit_price":  "58.99",
+					},
+				},
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreateInvoiceTx(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.InvoiceResult{}, ErrForeignKeyViolation)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+
+		{
 			name: "InternalError",
 			body: gin.H{
 				"customer_name":    "john doe",
@@ -586,6 +627,36 @@ func TestGetInvoiceAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+
+		{
+			name:          "NotFound",
+			invoiceNumber: fakeID,
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					GetInvoice(gomock.Any(), gomock.Eq(fakeID)).
+					Times(1).
+					Return(db.InvoiceResult{}, ErrRecordNotFound)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+
+		{
+			name:          "InternalError",
+			invoiceNumber: fakeID,
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					GetInvoice(gomock.Any(), gomock.Eq(fakeID)).
+					Times(1).
+					Return(db.InvoiceResult{}, &pgconn.PgError{})
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
