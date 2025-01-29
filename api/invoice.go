@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -91,6 +93,10 @@ func (server *Server) createInvoice(c *gin.Context) {
 
 	result, err := server.store.CreateInvoiceTx(c, arg)
 	if err != nil {
+		if errorCode := ErrorCode(err); errorCode == ForeignKeyViolation {
+			c.JSON(http.StatusForbidden, errorResponse(err))
+			return
+		}
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -102,4 +108,101 @@ func (server *Server) createInvoice(c *gin.Context) {
 			CreatedAt:     result.CreatedAt,
 		},
 	)
+}
+
+type getInvoiceRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+type getInvoiceResponse struct {
+	InvoiceNumber   int64                    `json:"invoice_number"`
+	CustomerName    string                   `json:"customer_name"`
+	CustomerEmail   string                   `json:"customer_email"`
+	CustomerPhone   string                   `json:"customer_phone"`
+	CustomerAddress string                   `json:"customer_address"`
+	SenderName      string                   `json:"sender_name"`
+	SenderEmail     string                   `json:"sender_email"`
+	SenderPhone     string                   `json:"sender_phone"`
+	SenderAddress   string                   `json:"sender_address"`
+	IssueDate       string                   `json:"issue_date"`
+	DueDate         string                   `json:"due_date"`
+	Status          string                   `json:"status"`
+	Subtotal        string                   `json:"subtotal"`
+	DiscountRate    string                   `json:"discount_rate"`
+	Discount        string                   `json:"discount"`
+	TotalAmount     string                   `json:"total_amount"`
+	PaymentInfo     string                   `json:"payment_info"`
+	BillingCurrency string                   `json:"billing_currency"`
+	Note            string                   `json:"note"`
+	CreatedAt       string                   `json:"created_at"`
+	Items           []getInvoiceResponseItem `json:"items"`
+}
+
+type getInvoiceResponseItem struct {
+	ID            int64  `json:"id"`
+	InvoiceNumber int64  `json:"invoice_number"`
+	Description   string `json:"description"`
+	Quantity      int64  `json:"quantity"`
+	UnitPrice     string `json:"unit_price"`
+	TotalPrice    string `json:"total_price"`
+}
+
+func (s *Server) getInvoice(c *gin.Context) {
+	var req getInvoiceRequest
+	if err := c.ShouldBindUri(&req); err != nil {
+		c.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	result, err := s.store.GetInvoice(c, req.ID)
+	if err != nil {
+		if errors.Is(err, ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	response := generateGetInvoiceResponse(result)
+	c.JSON(http.StatusOK, response)
+
+}
+
+func generateGetInvoiceResponse(result db.InvoiceResult) getInvoiceResponse {
+	items := make([]getInvoiceResponseItem, len(result.LineItems))
+	for i, v := range result.LineItems {
+		items[i] = getInvoiceResponseItem{
+			ID:            v.ID,
+			InvoiceNumber: v.InvoiceNumber,
+			Description:   v.Description,
+			Quantity:      v.Quantity,
+			UnitPrice:     money.New(v.UnitPrice, result.BillingCurrency).Display(),
+			TotalPrice:    money.New(v.TotalPrice, result.BillingCurrency).Display(),
+		}
+	}
+
+	return getInvoiceResponse{
+		InvoiceNumber:   result.InvoiceNumber,
+		CustomerName:    result.CustomerName,
+		CustomerEmail:   result.CustomerEmail,
+		CustomerPhone:   result.CustomerPhone,
+		CustomerAddress: result.CustomerAddress,
+		SenderName:      result.SenderName,
+		SenderEmail:     result.SenderEmail,
+		SenderPhone:     result.SenderPhone,
+		SenderAddress:   result.SenderAddress,
+		IssueDate:       result.IssueDate.Format(time.DateOnly),
+		DueDate:         result.DueDate.Format(time.DateOnly),
+		Status:          result.Status,
+		Subtotal:        money.New(result.Subtotal, result.BillingCurrency).Display(),
+		DiscountRate:    fmt.Sprintf("%s%%", basisPointsToPercent(result.DiscountRate)),
+		Discount:        money.New(result.Discount, result.BillingCurrency).Display(),
+		TotalAmount:     money.New(result.TotalAmount, result.BillingCurrency).Display(),
+		PaymentInfo:     result.PaymentInfo,
+		BillingCurrency: result.BillingCurrency,
+		Note:            result.Note,
+		CreatedAt:       result.CreatedAt.Format(time.RFC3339),
+		Items:           items,
+	}
 }
